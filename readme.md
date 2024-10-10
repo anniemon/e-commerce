@@ -241,6 +241,18 @@ sequenceDiagram
     end
 ```
 
+## API docs
+endpoint, request, response, error, authorization
+
+- 잔액 충전 / 조회 API
+- 상품 조회 API
+- 주문 / 결제 API
+- 인기 판매 상품 조회 API
+
+## ERD
+[dbdiagram.io 링크](https://dbdiagram.io/d/E-commerce-670811e697a66db9a393b7dc)
+![E-commerce (1)](https://github.com/user-attachments/assets/6563207d-2685-46a9-87a5-cb4da12f69f1)
+
 ## Structure/Architecture
 
 ## Stack
