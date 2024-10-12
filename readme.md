@@ -242,18 +242,13 @@ sequenceDiagram
 ```
 
 ## API docs
-endpoint, request, response, error, authorization
 
-- 잔액 충전 / 조회 API
-- 상품 조회 API
-- 주문 / 결제 API
-- 인기 판매 상품 조회 API
+WIP..
 
 ## ERD
 [dbdiagram.io 링크](https://dbdiagram.io/d/E-commerce-670811e697a66db9a393b7dc)
-![E-commerce (1)](https://github.com/user-attachments/assets/1ddb6a14-a615-4105-8330-604cfca21bc2)
-
+![E-commerce (6)](https://github.com/user-attachments/assets/4756c9b0-128f-4543-bded-27baabd53bbe)
 ## Structure/Architecture
 
 ## Stack
-- TypeScript + NestJS + TypeORM + MySQL
+- TypeScript + NestJS + TypeORM + MySQL + Redis
