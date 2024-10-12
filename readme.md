@@ -251,7 +251,7 @@ endpoint, request, response, error, authorization
 
 ## ERD
 [dbdiagram.io 링크](https://dbdiagram.io/d/E-commerce-670811e697a66db9a393b7dc)
-![E-commerce (1)](https://github.com/user-attachments/assets/6563207d-2685-46a9-87a5-cb4da12f69f1)
+![E-commerce (1)](https://github.com/user-attachments/assets/1ddb6a14-a615-4105-8330-604cfca21bc2)
 
 ## Structure/Architecture
 
