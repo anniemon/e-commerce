@@ -77,9 +77,6 @@ sequenceDiagram
     participant PointService as 포인트 서비스
     participant ProductService as 상품 서비스
     participant PaymentService as 결제 서비스
-    participant EventBus as 이벤트 버스
-    participant StockConsumer as 재고 이벤트 소비자
-    participant PointConsumer as 포인트 이벤트 소비자
 
     Client->>OrderService: 상품 주문 요청 (상품 ID, 수량)
     
@@ -110,45 +107,39 @@ sequenceDiagram
                     OrderService-->>Client: 에러 반환 (결제 실패)
                 else 결제 성공
                     PaymentService-->>OrderService: 결제 성공
-                    Note right of OrderService: 이벤트 발행
-                    OrderService->>EventBus: 주문 이벤트 발행 (상품 ID, 수량, 사용자 ID)
+                    Note right of OrderService: 수량 차감 및 포인트 차감
+                    OrderService->>ProductService: 상품 잔여 수량 차감
+                    ProductService-->>OrderService: 수량 차감 완료
 
-                    EventBus->>StockConsumer: 상품 잔여 수량 차감 이벤트 발행 (상품 ID, 수량)
-                    StockConsumer->>ProductService: 상품 잔여 수량 차감
-                    ProductService-->>StockConsumer: 수량 차감 완료
-
-                    EventBus->>PointConsumer: 사용자 잔액 차감 이벤트 발행 (사용자 ID, 차감 포인트)
-                    PointConsumer->>PointService: 사용자 포인트 차감
-                    PointService-->>PointConsumer: 포인트 차감 완료
+                    OrderService->>PointService: 사용자 포인트 차감
+                    PointService-->>OrderService: 포인트 차감 완료
 
                     OrderService-->>Client: 주문 성공 응답
                 end
             end
         end
     end
+
 ```
 
 ### 상위 상품 조회
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
-    participant 상위 상품 조회 서비스
-    participant ReadService as 읽기 서비스
-    participant ReadDB as 읽기 데이터베이스
+    participant ProductService as 상위 상품 조회 서비스
+    participant DB as 데이터베이스
     participant Cache as 캐시
 
-    Client->>API: 최근 3일간 판매 상위 5개 상품 조회 요청
-    API->>Cache: 캐시 조회 (상위 5개 상품)
+    Client->>ProductService: 최근 3일간 판매 상위 5개 상품 조회 요청
+    ProductService->>Cache: 캐시 조회 (상위 5개 상품)
     alt 캐시 히트
-        Cache-->>API: 캐시된 데이터 반환
+        Cache-->>ProductService: 캐시된 데이터 반환
     else 캐시 미스
-        API->>ReadService: 최근 3일간 판매 상위 5개 상품 조회 요청
-        ReadService->>ReadDB: 최근 3일간 판매 상위 5개 상품 데이터 조회
-        ReadDB-->>ReadService: 상위 5개 상품 데이터 반환
-        ReadService-->>API: 상위 5개 상품 데이터 반환
-        API->>Cache: 캐시 저장 (상위 5개 상품 데이터)
+        ProductService->>DB: 최근 3일간 판매 상위 5개 상품 데이터 조회
+        DB-->>ProductService: 상위 5개 상품 데이터 반환
+        ProductService->>Cache: 캐시 저장 (상위 5개 상품 데이터)
     end
-    API-->>Client: 상위 5개 상품 데이터 반환
+    ProductService-->>Client: 상위 5개 상품 데이터 반환
 ```
 
 ## Structure/Architecture
