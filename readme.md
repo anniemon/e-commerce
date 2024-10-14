@@ -243,7 +243,7 @@ sequenceDiagram
 
 ## API docs
 
-WIP..
+[Mock api Swagger 링크](https://app.swaggerhub.com/apis/SeojungNoh/E-commerce_api/1.0.0)
 
 ## ERD
 [dbdiagram.io 링크](https://dbdiagram.io/d/E-commerce-670811e697a66db9a393b7dc)
