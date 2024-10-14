@@ -247,7 +247,8 @@ WIP..
 
 ## ERD
 [dbdiagram.io 링크](https://dbdiagram.io/d/E-commerce-670811e697a66db9a393b7dc)
-![E-commerce (6)](https://github.com/user-attachments/assets/4756c9b0-128f-4543-bded-27baabd53bbe)
+![E-commerce (7)](https://github.com/user-attachments/assets/5dc5d803-b152-438c-a9ba-2c0af73fb7c6)
+
 ## Structure/Architecture
 
 ## Stack
