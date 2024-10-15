@@ -1,0 +1,19 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "verbose": true,
+  "testEnvironment": "node",
+  "testRegex": "./test/.*.spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "@domain/(.*)": "<rootDir>/src/domain/$1",
+    "@infrastructure/(.*)": "<rootDir>/src/infrastructure/$1",
+    "@application/(.*)": "<rootDir>/src/application/$1",
+    "@config/(.*)": "<rootDir>/src/config/$1",
+    "@interfaces/(.*)": "<rootDir>/src/interfaces/$1",
+    "@test/(.*)": "<rootDir>/test/$1"
+  },
+  "testResultsProcessor": "jest-sonar-reporter"
+}
