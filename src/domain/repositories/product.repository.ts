@@ -1,9 +1,12 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { ProductTypeOrmRepository } from '@infrastructure/typeorm/repositories';
 import { IProductRepository } from '@interfaces/repository';
-import { ProductTypeOrmRepository } from '@infrastructure/typeorm/repositories/product.repository';
 
-export class ProductRepository implements IProductRepository {
+@Injectable()
+export class ProductRepository {
   constructor(
-    private readonly productOrmRepository: ProductTypeOrmRepository,
+    @Inject(ProductTypeOrmRepository)
+    private readonly productOrmRepository: IProductRepository,
   ) {}
 
   async getProductByIdWithStock(productId: number) {
