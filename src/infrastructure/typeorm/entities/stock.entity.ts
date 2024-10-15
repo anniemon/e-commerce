@@ -4,23 +4,18 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Column,
+  JoinColumn,
   OneToOne,
 } from 'typeorm';
-import { Stock } from './stock.entity';
+import { Product } from './product.entity';
 
 @Entity()
-export class Product {
+export class Stock {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
-
-  @Column({ type: 'text' })
-  description: string;
-
   @Column({ type: 'int', unsigned: true })
-  price: number;
+  quantity: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -28,6 +23,7 @@ export class Product {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => Stock, (stock) => stock.product, { cascade: true })
-  stock: Stock;
+  @OneToOne(() => Product, { createForeignKeyConstraints: false })
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 }

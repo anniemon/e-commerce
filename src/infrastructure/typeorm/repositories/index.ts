@@ -1,1 +1,1 @@
-export { ProductTypeOrmModule } from './product-typeorm.module';
+export * from './product.repository';
