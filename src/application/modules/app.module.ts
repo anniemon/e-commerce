@@ -4,6 +4,8 @@ import { fixtures, setInitialData } from '@infrastructure/typeorm/helper';
 import * as modules from '../../domain/modules';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import dataSource from '@infrastructure/typeorm/data-source';
+import { AppController } from '@application/controllers';
+import { AppService } from '@domain/services';
 
 const modulesList = Object.keys(modules).map(
   (moduleIndex) => modules[moduleIndex as keyof typeof modules],
@@ -12,12 +14,13 @@ const modulesList = Object.keys(modules).map(
 @Module({
   imports: [...modulesList, TypeOrmModule.forRoot(dataSource.options)],
   providers: [
+    AppService,
     {
       provide: 'DataSource',
       useValue: dataSource,
     },
   ],
-  controllers: [],
+  controllers: [AppController],
 })
 export class AppModule {
   constructor(private readonly dataSource: DataSource) {}
