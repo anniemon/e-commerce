@@ -1,1 +1,1 @@
-export * from './app.module';
+export * from './product-typeorm.module';
