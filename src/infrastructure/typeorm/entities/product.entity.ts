@@ -28,6 +28,6 @@ export class Product {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => Stock, (stock) => stock.product, { cascade: true })
+  @OneToOne(() => Stock, (stock) => stock.productId, { cascade: true })
   stock: Stock;
 }
