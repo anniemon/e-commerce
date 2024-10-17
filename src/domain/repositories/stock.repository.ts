@@ -20,13 +20,12 @@ export class StockRepository {
     quantity: number;
     queryRunner: QueryRunner;
   }) {
-    const affectedRowsCount =
-      await this.stockOrmRepository.decrementStockWithLock({
-        productId,
-        quantity,
-        queryRunner,
-      });
-    if (affectedRowsCount === 0) {
+    const stock = await this.stockOrmRepository.decrementStockWithLock({
+      productId,
+      quantity,
+      queryRunner,
+    });
+    if (!stock) {
       throw new OutOfStockException();
     }
   }

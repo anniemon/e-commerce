@@ -21,15 +21,20 @@ export class StockTypeOrmRepository
     quantity: number;
     queryRunner: QueryRunner;
   }) {
-    const result = await queryRunner.manager
-      .createQueryBuilder()
+    const stock = await queryRunner.manager
+      .createQueryBuilder(Stock, 'stock')
       .setLock('pessimistic_write')
-      .update(Stock)
-      .set({ quantity: () => `quantity - ${quantity}` })
-      .where('product_id = :productId', { productId })
-      .andWhere('quantity >= :quantity', { quantity })
-      .execute();
+      .where('stock.product_id = :productId', { productId })
+      .andWhere('stock.quantity >= :quantity', { quantity })
+      .getOne();
 
-    return result.affected;
+    if (!stock) {
+      return null;
+    }
+
+    stock.quantity -= quantity;
+    await queryRunner.manager.save(stock);
+
+    return stock;
   }
 }
