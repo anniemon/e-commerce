@@ -4,7 +4,8 @@
 test/**
 .gitignore
 .dockerignore
-Dockerfile
+.prettierrc
+Dockerfile.*
 *.md
 
 # pnpm & node dependencies
