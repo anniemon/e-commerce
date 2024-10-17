@@ -1,26 +1,21 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
+  Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Column,
-  OneToOne,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-import { Stock } from './stock.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class Product {
+export class Order {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
   @Column({ type: 'varchar', length: 255 })
-  name: string;
-
-  @Column({ type: 'text' })
-  description: string;
-
-  @Column({ type: 'int', unsigned: true })
-  price: number;
+  status: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -28,6 +23,9 @@ export class Product {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => Stock, (stock) => stock.productId, { cascade: true })
-  stock: Stock;
+  @ManyToOne(() => User, (user) => user.id, {
+    createForeignKeyConstraints: false,
+  })
+  @JoinColumn({ name: 'user_id' })
+  userId: number;
 }
