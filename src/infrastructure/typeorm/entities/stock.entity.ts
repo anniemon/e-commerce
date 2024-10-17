@@ -25,5 +25,5 @@ export class Stock {
 
   @OneToOne(() => Product, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'product_id' })
-  product: Product;
+  productId: number;
 }
