@@ -1,4 +1,3 @@
-
 # e-commerce
 
 ## Milestone
@@ -8,6 +7,7 @@
 ## Sequence Diagram
 
 ### 포인트 충전
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
@@ -37,6 +37,7 @@ sequenceDiagram
 ```
 
 ### 포인트 조회
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
@@ -57,6 +58,7 @@ sequenceDiagram
 ```
 
 ### 상품 조회
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
@@ -64,7 +66,7 @@ sequenceDiagram
     participant DB as 데이터베이스
 
     Client->>Service: 상품 조회 요청 (상품 ID)
-    
+
     Note right of Service: 상품 유효성 검사
     Service->>DB: 상품 유효성 검사 요청 (상품 ID)
     alt 유효하지 않은 상품
@@ -76,12 +78,13 @@ sequenceDiagram
 ```
 
 ### 상품 주문
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
     participant OrderService as 상품 주문 서비스
     participant DB as 데이터베이스
-    
+
     Client->>OrderService: 사용자 식별자와 상품 ID 수량으로 주문 요청
     OrderService->>DB: 사용자 유효성 검증 요청
     alt 유효하지 않은 사용자
@@ -123,6 +126,7 @@ sequenceDiagram
 ```
 
 ### 상위 상품 조회
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
@@ -143,6 +147,7 @@ sequenceDiagram
 ```
 
 ### 장바구니에 상품 추가
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
@@ -150,7 +155,7 @@ sequenceDiagram
     participant DB as 데이터베이스
 
     Client->>CartService: 사용자 식별자와 상품 + 수량으로 장바구니에 추가 요청 (상품 ID, 수량)
-    
+
     Note right of CartService: 사용자 유효성 검증
     CartService->>DB: 사용자 유효성 검증 (사용자 ID)
     alt 유효하지 않은 사용자
@@ -177,6 +182,7 @@ sequenceDiagram
 ```
 
 ### 장바구니에 상품 삭제
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
@@ -184,7 +190,7 @@ sequenceDiagram
     participant DB as 데이터베이스
 
     Client->>CartService: 사용자 식별자와 상품 + 수량으로 장바구니에 삭제 요청 (상품 ID, 삭제할 수량)
-    
+
     Note right of CartService: 사용자 유효성 검증
     CartService->>DB: 사용자 유효성 검증 (사용자 ID)
     alt 유효하지 않은 사용자
@@ -202,7 +208,7 @@ sequenceDiagram
             alt 장바구니 상품 수량 검증 실패
                 DB-->>CartService: 에러 반환 (장바구니 상품 수량 부족)
                 CartService-->>Client: 에러 반환 (수량 부족)
-            else 장바구니 상품 수량 검증 성공                
+            else 장바구니 상품 수량 검증 성공
                 Note right of CartService: 장바구니에서 상품 차감
                 CartService->>DB: 장바구니에서 상품 수량 차감 (상품 ID, 삭제할 수량)
                 DB-->>CartService: 삭제 성공
@@ -213,6 +219,7 @@ sequenceDiagram
 ```
 
 ### 장바구니 조회
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트
@@ -220,7 +227,7 @@ sequenceDiagram
     participant DB as 데이터베이스
 
     Client->>CartService: 사용자 식별자로 장바구니 조회 요청 (사용자 ID, 장바구니 ID)
-    
+
     Note right of CartService: 사용자 유효성 검증
     CartService->>DB: 사용자 유효성 검증 (사용자 ID)
     alt 유효하지 않은 사용자
@@ -245,12 +252,20 @@ sequenceDiagram
 
 [Mock api Swagger 링크](https://app.swaggerhub.com/apis/SeojungNoh/E-commerce_api/1.0.0)
 
+### Product
+
+#### 상품 조회
+
+<img width="398" alt="스크린샷 2024-10-18 오후 8 56 09" src="https://github.com/user-attachments/assets/c43a4b8e-667c-46bf-b9ac-d07d07b0a14d">
+<img width="431" alt="스크린샷 2024-10-18 오후 8 56 17" src="https://github.com/user-attachments/assets/244fd909-22f2-4263-9fa3-862bde2b2056">
+
 ## ERD
+
 [dbdiagram.io 링크](https://dbdiagram.io/d/E-commerce-670811e697a66db9a393b7dc)
 ![E-commerce (9)](https://github.com/user-attachments/assets/e3b85e22-5340-45e4-ad67-d48495f87fd9)
-
 
 ## Structure/Architecture
 
 ## Stack
+
 - TypeScript + NestJS + TypeORM + MySQL + Redis

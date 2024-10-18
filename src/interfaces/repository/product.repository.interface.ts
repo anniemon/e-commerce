@@ -1,5 +1,8 @@
-import { ProductEntity } from '@domain/entities';
+import { ProductEntity, ProductStockEntity } from '@domain/entities';
 
 export interface IProductRepository {
-  getProductByIdWithStock(productId: number): Promise<ProductEntity | null>;
+  getProductByIdWithStock(
+    productId: number,
+  ): Promise<ProductStockEntity | null>;
+  findProductsByIds(productIds: number[]): Promise<ProductEntity[]>;
 }

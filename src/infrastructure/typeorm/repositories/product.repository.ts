@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { IProductRepository } from '@interfaces/repository';
-import { Product } from '../entities/product.entity';
-import { ProductEntity } from '@domain/entities';
+import { Product } from '../entities';
+import { ProductEntity, ProductStockEntity } from '@domain/entities';
 
 @Injectable()
 export class ProductTypeOrmRepository
@@ -13,7 +13,9 @@ export class ProductTypeOrmRepository
     super(Product, dataSource.createEntityManager());
   }
 
-  async getProductByIdWithStock(productId: number): Promise<ProductEntity> {
+  async getProductByIdWithStock(
+    productId: number,
+  ): Promise<ProductStockEntity> {
     const product = await this.createQueryBuilder('product')
       .leftJoinAndSelect('product.stock', 'stock')
       .where('product.id = :productId', { productId })
@@ -32,5 +34,20 @@ export class ProductTypeOrmRepository
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
     };
+  }
+
+  async findProductsByIds(productIds: number[]): Promise<ProductEntity[]> {
+    const products = await this.findBy({
+      id: In(productIds),
+    });
+    // XXX: product id가 string으로 리턴되어서 number로 변환
+    return products.map((product) => ({
+      id: Number(product.id),
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    }));
   }
 }

@@ -12,4 +12,8 @@ export class ProductRepository {
   async getProductByIdWithStock(productId: number) {
     return this.productOrmRepository.getProductByIdWithStock(productId);
   }
+
+  async findProductsByIds(productIds: number[]) {
+    return this.productOrmRepository.findProductsByIds(productIds);
+  }
 }

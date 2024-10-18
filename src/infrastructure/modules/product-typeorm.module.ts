@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Product } from '@infrastructure/typeorm/entities';
-import { ProductTypeOrmRepository } from '@infrastructure/typeorm/repositories';
+import { Product, Stock } from '@infrastructure/typeorm/entities';
+import {
+  ProductTypeOrmRepository,
+  StockTypeOrmRepository,
+} from '@infrastructure/typeorm/repositories';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Product])],
-  providers: [ProductTypeOrmRepository],
-  exports: [ProductTypeOrmRepository],
+  imports: [TypeOrmModule.forFeature([Product, Stock])],
+  providers: [ProductTypeOrmRepository, StockTypeOrmRepository],
+  exports: [ProductTypeOrmRepository, StockTypeOrmRepository],
 })
 export class ProductTypeOrmModule {}
