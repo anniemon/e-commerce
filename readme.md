@@ -10,6 +10,14 @@
 
 `npm run test`
 
+## API Docs
+
+`http://localhost:3000/.docs`
+
+### Mock api
+
+[Mock api Swagger 링크](https://app.swaggerhub.com/apis/SeojungNoh/E-commerce_api/1.0.0)
+
 ## Milestone
 
 [깃헙 마일스톤 링크](https://github.com/anniemon/e-commerce/milestones?direction=asc&sort=due_date&state=open)
@@ -257,17 +265,6 @@ sequenceDiagram
         end
     end
 ```
-
-## API docs
-
-[Mock api Swagger 링크](https://app.swaggerhub.com/apis/SeojungNoh/E-commerce_api/1.0.0)
-
-### Product
-
-#### 상품 조회
-
-<img width="398" alt="스크린샷 2024-10-18 오후 8 56 09" src="https://github.com/user-attachments/assets/c43a4b8e-667c-46bf-b9ac-d07d07b0a14d">
-<img width="431" alt="스크린샷 2024-10-18 오후 8 56 17" src="https://github.com/user-attachments/assets/244fd909-22f2-4263-9fa3-862bde2b2056">
 
 ## ERD
 
