@@ -1,5 +1,15 @@
 # e-commerce
 
+## Test
+
+### 도커 세팅
+
+`docker compose -f docker-compose.development.yaml up --build`
+
+### 테스트
+
+`npm run test`
+
 ## Milestone
 
 [깃헙 마일스톤 링크](https://github.com/anniemon/e-commerce/milestones?direction=asc&sort=due_date&state=open)
