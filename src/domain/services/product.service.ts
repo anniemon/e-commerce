@@ -1,7 +1,6 @@
 import { QueryRunner } from 'typeorm';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ProductRepository, StockRepository } from '@domain/repositories';
-import { ProductEntity } from '@domain/entities';
 import { OutOfStockException } from '@domain/exceptions';
 
 @Injectable()
@@ -22,13 +21,14 @@ export class ProductService {
     return product;
   }
 
+  // XXX: 메서드명 변경 고려
   async decrementStockWithLock({
     items,
     queryRunner,
   }: {
     items: { productId: number; quantity: number }[];
     queryRunner: QueryRunner;
-  }): Promise<ProductEntity[]> {
+  }): Promise<number[]> {
     /**
      * 재고가 없는 상품은 로그만 남기고 넘어간다.
      * 모든 상품이 재고가 없으면 예외 발생시킨다. (트랜잭션 롤백)
@@ -53,9 +53,9 @@ export class ProductService {
     }
 
     if (inStockProductIds.length === 0) {
-      throw new NotFoundException();
+      throw new NotFoundException('상품 재고가 부족합니다.');
     }
-    return await this.findProductsByIds(inStockProductIds);
+    return inStockProductIds;
   }
 
   async findProductsByIds(productIds: number[]) {

@@ -24,21 +24,35 @@ export class OrderFacade {
   }: {
     userId: number;
     items: { productId: number; quantity: number }[];
-  }): Promise<{ order: OrderEntity; totalAmount: number }> {
+  }): Promise<{
+    order: OrderEntity;
+    totalAmount: number;
+    outOfStockProductIds: number[];
+  }> {
     //TODO: 결제 서비스(유저 포인트 차감) 추가
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.startTransaction();
 
     try {
-      const inStockProducts = await this.productService.decrementStockWithLock({
-        items,
-        queryRunner,
-      });
+      const inStockProductsIds =
+        await this.productService.decrementStockWithLock({
+          items,
+          queryRunner,
+        });
+
+      const inStockProducts =
+        await this.productService.findProductsByIds(inStockProductsIds);
+
+      // TODO: 재고 없는 상품 조회 로직 분리
+      const outOfStockProductIds = items
+        .map((i) => i.productId)
+        .filter((productId) => !inStockProductsIds.includes(productId));
 
       const productsForOrder = inStockProducts.map((product) => {
         const quantity = items.find(
           (i) => i.productId === product.id,
         )?.quantity;
+
         return {
           productId: product.id,
           quantity,
@@ -62,6 +76,7 @@ export class OrderFacade {
       return {
         order,
         totalAmount,
+        outOfStockProductIds,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
