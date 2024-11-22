@@ -6,7 +6,7 @@ services:
     command: --init-file /init-backend.sql
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=e-commerce
+      - MYSQL_DATABASE=e-commerce_local
       - MYSQL_USER=anniemon
       - MYSQL_PASSWORD=anniemon
       - MYSQL_TCP_PORT=3307
@@ -21,21 +21,3 @@ services:
     container_name: redis
     ports:
       - '6379:6379'
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.development
-    container_name: api
-    ports:
-      - '3000:3000'
-    environment:
-      - PORT=3000
-      - NODE_ENV=development
-      - DB_PORT=3307
-      - DB_USERNAME=anniemon
-      - DB_PASSWORD=anniemon
-      - DB_DATABASE=e-commerce
-    volumes:
-      - ./src:/app/src
-    depends_on:
-      - mysql
