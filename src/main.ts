@@ -18,7 +18,10 @@ async function bootstrap() {
   const NODE_PORT = process.env.NODE_PORT || 3000;
   await app.listen(NODE_PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(`*** server is running on ${NODE_PORT} ***`);
+    console.log(`*** server is running on http://localhost:${NODE_PORT} ***`);
+    console.log(
+      `*** API document is running on http://localhost:${NODE_PORT}/.docs ***`,
+    );
   });
 }
 bootstrap();
