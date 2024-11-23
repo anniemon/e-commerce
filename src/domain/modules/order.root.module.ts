@@ -3,9 +3,10 @@ import { OrderController } from '@application/controllers';
 import { OrderFacade } from '@domain/usecase';
 import { OrderServiceModule } from './order.service.module';
 import { ProductModule } from './product.module';
+import { PointModule } from './point.module';
 
 @Module({
-  imports: [OrderServiceModule, ProductModule],
+  imports: [OrderServiceModule, ProductModule, PointModule],
   controllers: [OrderController],
   providers: [OrderFacade],
 })
