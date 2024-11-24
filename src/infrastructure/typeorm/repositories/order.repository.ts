@@ -15,6 +15,7 @@ export class OrderTypeOrmRepository implements IOrderRepository {
   async createOrder({ userId, items, queryRunner }): Promise<OrderEntity> {
     const order = new Order();
     order.userId = userId;
+    // TODO: 주문 상태 enum으로 관리
     order.status = 'ORDERED';
 
     const newOrders = await queryRunner.manager.save(order);
