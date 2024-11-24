@@ -50,4 +50,23 @@ export class ProductTypeOrmRepository
       updatedAt: product.updatedAt,
     }));
   }
+
+  async findProductsByIdsWithStock(
+    productIds: number[],
+  ): Promise<ProductStockEntity[]> {
+    const products = await this.createQueryBuilder('product')
+      .leftJoinAndSelect('product.stock', 'stock')
+      .where('product.id IN (:...productIds)', { productIds })
+      .getMany();
+
+    return products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      quantity: product.stock.quantity,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    }));
+  }
 }
