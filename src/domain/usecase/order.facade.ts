@@ -1,22 +1,17 @@
 import { DataSource } from 'typeorm';
 import { Injectable } from '@nestjs/common';
-import { ProductService } from '@domain/services';
+import { PointService, ProductService, OrderService } from '@domain/services';
 import { OrderEntity } from '@domain/entities';
-import { OrderService } from '@domain/services/order.service';
 
-// XXX: facade가 injectable 해야하나?
 @Injectable()
 export class OrderFacade {
   constructor(
     private readonly productService: ProductService,
     private readonly orderService: OrderService,
-    // TODO: paymentService 추가
+    private readonly pointService: PointService,
     // TODO: transaction 관리용 인터페이스 추가
     private readonly dataSource: DataSource,
-  ) {
-    this.productService = productService;
-    this.orderService = orderService;
-  }
+  ) {}
 
   async createOrderWithTransaction({
     userId,
@@ -26,59 +21,63 @@ export class OrderFacade {
     items: { productId: number; quantity: number }[];
   }): Promise<{
     order: OrderEntity;
-    totalAmount: number;
+    totalPrice: number;
     outOfStockProductIds: number[];
   }> {
-    //TODO: 결제 서비스(유저 포인트 차감) 추가
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.startTransaction();
 
+    // TODO: trx 메서드명 분리
     try {
-      const inStockProductsIds =
+      const { inStockProductIds, outOfStockProductIds } =
         await this.productService.decrementStockWithLock({
           items,
           queryRunner,
         });
 
       const inStockProducts =
-        await this.productService.findProductsByIds(inStockProductsIds);
+        await this.productService.findProductsByIdsWithStock(inStockProductIds);
 
-      // TODO: 재고 없는 상품 조회 로직 분리
-      const outOfStockProductIds = items
-        .map((i) => i.productId)
-        .filter((productId) => !inStockProductsIds.includes(productId));
+      const productOrderMap = new Map<number, number>();
+      items.forEach((item) => {
+        productOrderMap.set(item.productId, item.quantity);
+      });
+      // TODO: totalPirce 계산 메서드 분리
+      const totalPrice = inStockProducts.reduce((acc, product) => {
+        const quantity = productOrderMap.get(product.id);
+        return acc + product.price * quantity;
+      }, 0);
 
-      const productsForOrder = inStockProducts.map((product) => {
-        const quantity = items.find(
-          (i) => i.productId === product.id,
-        )?.quantity;
+      await this.pointService.usePointWithLock({
+        queryRunner,
+        userId,
+        amount: totalPrice,
+      });
 
+      const orderItems = inStockProducts.map((product) => {
         return {
           productId: product.id,
-          quantity,
+          quantity: productOrderMap.get(product.id),
           price: product.price,
         };
       });
 
-      const order = await this.orderService.createOrder({
+      const order: OrderEntity = await this.orderService.createOrder({
         userId,
-        items: productsForOrder,
+        items: orderItems,
         queryRunner,
       });
 
       await queryRunner.commitTransaction();
 
-      const totalAmount = inStockProducts.reduce(
-        (acc, product) => acc + product.price,
-        0,
-      );
-
       return {
         order,
-        totalAmount,
+        totalPrice,
         outOfStockProductIds,
       };
     } catch (error) {
+      // todo: 로거 추가
+      console.log(error, 'Error creating order');
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
