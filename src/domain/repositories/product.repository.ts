@@ -13,6 +13,12 @@ export class ProductRepository {
     return this.productOrmRepository.getProductByIdWithStock(productId);
   }
 
+  async findProductsByIdsWithStock(productIds: number[]) {
+    return await this.productOrmRepository.findProductsByIdsWithStock(
+      productIds,
+    );
+  }
+
   async findProductsByIds(productIds: number[]) {
     return this.productOrmRepository.findProductsByIds(productIds);
   }
