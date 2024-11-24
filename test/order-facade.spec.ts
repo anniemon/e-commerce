@@ -1,17 +1,20 @@
 import { DataSource } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderFacade } from '@domain/usecase';
-import { OrderService, ProductService } from '@domain/services';
+import { OrderService, PointService, ProductService } from '@domain/services';
 
 describe('OrderFacade', () => {
   let orderFacade: OrderFacade;
+
   const productService = {
-    getProductByIdWithStock: jest.fn(),
-    findProductsByIds: jest.fn(),
+    findProductsByIdsWithStock: jest.fn(),
     decrementStockWithLock: jest.fn(),
   };
   const orderService = {
     createOrder: jest.fn(),
+  };
+  const pointService = {
+    usePointWithLock: jest.fn(),
   };
   const queryRunner = {
     startTransaction: jest.fn(),
@@ -39,24 +42,42 @@ describe('OrderFacade', () => {
           provide: DataSource,
           useValue: dataSource,
         },
+        {
+          provide: PointService,
+          useValue: pointService,
+        },
       ],
     }).compile();
 
     orderFacade = moduleFixture.get(OrderFacade);
   });
 
-  describe('createOrderWithTransaction', () => {
-    it('주문 생성 트랜잭션 성공', async () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('createOrderWithTransaction: 주문 생성 성공', () => {
+    it('재고와 유저 잔액이 충분할 때 주문 생성이 성공해야 한다.', async () => {
       const userId = 1;
       const items = [
         { productId: 1, quantity: 1 },
         { productId: 2, quantity: 2 },
       ];
 
-      productService.decrementStockWithLock.mockResolvedValueOnce([
-        { id: 1, price: 100 },
-        { id: 2, price: 200 },
+      productService.decrementStockWithLock.mockResolvedValueOnce({
+        inStockProductIds: [1, 2],
+        outOfStockProductIds: [],
+      });
+      productService.findProductsByIdsWithStock.mockResolvedValueOnce([
+        { id: 1, price: 100, quantity: 1 },
+        { id: 2, price: 200, quantity: 2 },
       ]);
+
+      pointService.usePointWithLock.mockResolvedValueOnce({
+        id: 1,
+        balance: 1000,
+      });
+
       orderService.createOrder.mockResolvedValueOnce({ id: 1, userId, items });
 
       const result = await orderFacade.createOrderWithTransaction({
@@ -65,10 +86,18 @@ describe('OrderFacade', () => {
       });
 
       expect(result.order.id).toBe(1);
-      expect(result.totalAmount).toBe(300);
+      expect(result.totalPrice).toBe(500);
       expect(productService.decrementStockWithLock).toHaveBeenCalledWith({
         items,
         queryRunner,
+      });
+      expect(productService.findProductsByIdsWithStock).toHaveBeenCalledWith([
+        1, 2,
+      ]);
+      expect(pointService.usePointWithLock).toHaveBeenCalledWith({
+        queryRunner,
+        userId,
+        amount: 500,
       });
       expect(orderService.createOrder).toHaveBeenCalledWith({
         userId,
@@ -90,9 +119,20 @@ describe('OrderFacade', () => {
         { productId: 2, quantity: 2 },
       ];
 
-      productService.decrementStockWithLock.mockResolvedValueOnce([
-        { id: 1, price: 100 },
+      productService.decrementStockWithLock.mockResolvedValueOnce({
+        inStockProductIds: [1],
+        outOfStockProductIds: [2],
+      });
+
+      productService.findProductsByIdsWithStock.mockResolvedValueOnce([
+        { id: 1, price: 100, quantity: 1 },
       ]);
+
+      pointService.usePointWithLock.mockResolvedValueOnce({
+        id: 1,
+        balance: 1000,
+      });
+
       orderService.createOrder.mockResolvedValueOnce({
         id: 1,
         userId,
@@ -105,7 +145,7 @@ describe('OrderFacade', () => {
       });
 
       expect(result.order.id).toBe(1);
-      expect(result.totalAmount).toBe(100);
+      expect(result.totalPrice).toBe(100);
       expect(result.order.items.length).toBe(1);
       expect(productService.decrementStockWithLock).toHaveBeenCalledWith({
         items,
@@ -116,11 +156,15 @@ describe('OrderFacade', () => {
         items: [{ productId: 1, quantity: 1, price: 100 }],
         queryRunner,
       });
+      expect(orderService.createOrder).toHaveBeenCalledTimes(1);
       expect(queryRunner.commitTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
+      expect(queryRunner.rollbackTransaction).not.toHaveBeenCalled();
     });
+  });
 
-    it('모든 상품의 재고가 없으면 주문 생성이 실패해야 한다.', async () => {
+  describe('createOrderWithTransaction: 주문 생성 실패', () => {
+    it('모든 상품의 재고가 없으면 주문 생성이 실패하고 트랜잭션이 롤백되어야 한다.', async () => {
       const userId = 1;
       const items = [
         { productId: 1, quantity: 1 },
@@ -130,42 +174,76 @@ describe('OrderFacade', () => {
       productService.decrementStockWithLock.mockRejectedValueOnce(
         new Error('Out of stock'),
       );
+      productService.findProductsByIdsWithStock.mockResolvedValueOnce([]);
+      pointService.usePointWithLock.mockResolvedValueOnce({
+        id: 1,
+        balance: 1000,
+      });
       orderService.createOrder.mockResolvedValueOnce({ id: 1, userId, items });
 
-      try {
-        await orderFacade.createOrderWithTransaction({
+      await expect(
+        orderFacade.createOrderWithTransaction({
           userId,
           items,
-        });
-      } catch (e) {
-        expect(e.message).toBe('Out of stock');
-      }
+        }),
+      ).rejects.toThrow(Error);
 
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
     });
 
-    it('주문 생성 중 에러 발생 시 주문 생성이 실패해야 한다.', async () => {
+    it('주문 생성 중 에러 발생 시 주문 생성이 실패하고 트랜잭션이 롤백되어야 한다.', async () => {
       const userId = 1;
       const items = [
         { productId: 1, quantity: 1 },
         { productId: 2, quantity: 2 },
       ];
 
-      productService.decrementStockWithLock.mockResolvedValueOnce([
-        { id: 1, price: 100 },
-        { id: 2, price: 200 },
+      productService.decrementStockWithLock.mockResolvedValueOnce({
+        inStockProductIds: [1, 2],
+        outOfStockProductIds: [],
+      });
+      productService.findProductsByIdsWithStock.mockResolvedValueOnce([
+        { id: 1, price: 100, quantity: 1 },
+        { id: 2, price: 200, quantity: 2 },
       ]);
-      orderService.createOrder.mockRejectedValueOnce(new Error('Order failed'));
+      pointService.usePointWithLock.mockResolvedValueOnce({
+        id: 1,
+        balance: 1000,
+      });
+      orderService.createOrder = jest.fn().mockRejectedValueOnce(new Error());
 
-      try {
-        await orderFacade.createOrderWithTransaction({
+      await expect(
+        orderFacade.createOrderWithTransaction({
           userId,
           items,
-        });
-      } catch (e) {
-        expect(e.message).toBe('Order failed');
-      }
+        }),
+      ).rejects.toThrow(Error);
+      expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalled();
+    });
+
+    it('포인트 차감 중 에러 발생 시 주문 생성이 실패하고 트랜잭션이 롤백되어야 한다.', async () => {
+      const userId = 1;
+      const items = [
+        { productId: 1, quantity: 1 },
+        { productId: 2, quantity: 2 },
+      ];
+
+      productService.decrementStockWithLock.mockResolvedValueOnce({
+        inStockProductIds: [1, 2],
+        outOfStockProductIds: [],
+      });
+      productService.findProductsByIdsWithStock.mockResolvedValueOnce([
+        { id: 1, price: 100, quantity: 1 },
+        { id: 2, price: 200, quantity: 2 },
+      ]);
+      pointService.usePointWithLock = jest.fn().mockRejectedValueOnce(Error());
+      orderService.createOrder.mockResolvedValueOnce({ id: 1, userId, items });
+
+      await expect(
+        orderFacade.createOrderWithTransaction({ userId, items }),
+      ).rejects.toThrow(Error);
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
     });
