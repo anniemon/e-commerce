@@ -15,8 +15,7 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  // TODO: 로컬 테스트 환경 설정 후 활성화
-  it.skip('/ (GET)', () => {
+  it('/ (GET)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
