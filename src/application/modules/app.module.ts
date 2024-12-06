@@ -10,7 +10,10 @@ const modulesList = Object.keys(modules).map(
 );
 
 @Module({
-  imports: [...modulesList, TypeOrmModule.forRoot(dataSource.options)],
+  imports: [
+    ...modulesList,
+    TypeOrmModule.forRoot({ ...dataSource.options, autoLoadEntities: true }),
+  ],
   providers: [
     AppService,
     {
