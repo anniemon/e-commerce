@@ -6,7 +6,7 @@ services:
     command: --init-file /init-backend.sql
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=e-commerce_local
+      - MYSQL_DATABASE=e_commerce_local
       - MYSQL_USER=anniemon
       - MYSQL_PASSWORD=anniemon
       - MYSQL_TCP_PORT=3307
