@@ -6,7 +6,7 @@ export class PointDto {
     default: 1000,
   })
   @IsInt()
-  @IsPositive()
+  @IsPositive({ message: '금액은 0보다 커야 합니다.' })
   amount: number;
 
   @ApiProperty({
