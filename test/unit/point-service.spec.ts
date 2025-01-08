@@ -117,6 +117,18 @@ describe('PointService', () => {
         NotFoundException,
       );
     });
+
+    it('실패: 잔액 충전 실패 시 에러가 발생해야 한다.', async () => {
+      const pointDto = { userId: 1, amount: 100 };
+
+      userRepository.selectById.mockResolvedValueOnce({ id: 1, balance: 1000 });
+      // XXX: 재할당하는 것보단 beforeEach에서 초기화하는 것이 좋을 듯..
+      userRepository.chargeBalanceWithLock = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('error'));
+
+      await expect(pointService.chargePoint(pointDto)).rejects.toThrow(Error);
+    });
   });
 
   describe('usePointWithLock', () => {
