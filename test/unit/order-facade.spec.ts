@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderFacade } from '@domain/usecase';
 import { OrderService, PointService, ProductService } from '@domain/services';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('OrderFacade', () => {
   let orderFacade: OrderFacade;
@@ -164,15 +165,15 @@ describe('OrderFacade', () => {
   });
 
   describe('createOrderWithTransaction: 주문 생성 실패', () => {
-    it('모든 상품의 재고가 없으면 주문 생성이 실패하고 트랜잭션이 롤백되어야 한다.', async () => {
+    it('모든 상품의 재고가 없으면 NotFoundException을 발생시키고, 트랜잭션이 롤백되어야 한다.', async () => {
       const userId = 1;
       const items = [
         { productId: 1, quantity: 1 },
         { productId: 2, quantity: 2 },
       ];
 
-      productService.decrementStockWithLock.mockRejectedValueOnce(
-        new Error('Out of stock'),
+      productService.decrementStockWithLock.mockRejectedValue(
+        new NotFoundException('상품 재고가 부족합니다.'),
       );
       productService.findProductsByIdsWithStock.mockResolvedValueOnce([]);
       pointService.usePointWithLock.mockResolvedValueOnce({
@@ -186,7 +187,7 @@ describe('OrderFacade', () => {
           userId,
           items,
         }),
-      ).rejects.toThrow(Error);
+      ).rejects.toThrow(new NotFoundException('상품 재고가 부족합니다.'));
 
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
@@ -219,6 +220,7 @@ describe('OrderFacade', () => {
           items,
         }),
       ).rejects.toThrow(Error);
+
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
     });
@@ -244,6 +246,63 @@ describe('OrderFacade', () => {
       await expect(
         orderFacade.createOrderWithTransaction({ userId, items }),
       ).rejects.toThrow(Error);
+
+      expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalled();
+    });
+
+    it('포인트 부족 시 BadRequestException을 발생시키고, 트랜잭션이 롤백되어야 한다.', async () => {
+      const userId = 1;
+      const items = [
+        { productId: 1, quantity: 1 },
+        { productId: 2, quantity: 2 },
+      ];
+
+      productService.decrementStockWithLock.mockResolvedValueOnce({
+        inStockProductIds: [1, 2],
+        outOfStockProductIds: [],
+      });
+      productService.findProductsByIdsWithStock.mockResolvedValueOnce([
+        { id: 1, price: 100, quantity: 1 },
+        { id: 2, price: 200, quantity: 2 },
+      ]);
+      pointService.usePointWithLock.mockRejectedValueOnce(
+        new BadRequestException('잔액이 부족합니다.'),
+      );
+      orderService.createOrder.mockResolvedValueOnce({ id: 1, userId, items });
+
+      await expect(
+        orderFacade.createOrderWithTransaction({ userId, items }),
+      ).rejects.toThrow(new BadRequestException('잔액이 부족합니다.'));
+
+      expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalled();
+    });
+
+    it('유효하지 않은 사용자일 경우, NotFoundException을 발생시키고, 트랜잭션이 롤백되어야 한다.', async () => {
+      const userId = 1;
+      const items = [
+        { productId: 1, quantity: 1 },
+        { productId: 2, quantity: 2 },
+      ];
+
+      pointService.usePointWithLock.mockRejectedValueOnce(
+        new NotFoundException('사용자를 찾을 수 없습니다.'),
+      );
+      productService.decrementStockWithLock.mockResolvedValueOnce({
+        inStockProductIds: [1, 2],
+        outOfStockProductIds: [],
+      });
+      productService.findProductsByIdsWithStock.mockResolvedValueOnce([
+        { id: 1, price: 100, quantity: 1 },
+        { id: 2, price: 200, quantity: 2 },
+      ]);
+      orderService.createOrder.mockResolvedValueOnce({ id: 1, userId, items });
+
+      await expect(
+        orderFacade.createOrderWithTransaction({ userId, items }),
+      ).rejects.toThrow(new NotFoundException('사용자를 찾을 수 없습니다.'));
+
       expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(queryRunner.release).toHaveBeenCalled();
     });
